@@ -15,7 +15,6 @@ class UserController extends Controller
         ];
         UserModel::where('username', 'customer-1')->update($data);
 
-
         $user = UserModel::all();
         return view('user', ['data' => $user]);
     }
