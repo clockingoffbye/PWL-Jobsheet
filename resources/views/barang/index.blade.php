@@ -1,11 +1,11 @@
 @extends('layouts.template')
-
 @section('content')
     <div class="card card-outline card-primary">
         <div class="card-header">
             <h3 class="card-title">{{ $page->title }}</h3>
             <div class="card-tools">
                 <a class="btn btn-sm btn-primary mt-1" href="{{ url('barang/create') }}">Tambah</a>
+                <button onclick="modalAction('{{ url('barang/create_ajax') }}')" class="btn btn-sm btn-success mt-1">Tambah Ajax</button>
             </div>
         </div>
         <div class="card-body">
@@ -15,81 +15,109 @@
             @if (session('error'))
                 <div class="alert alert-danger">{{ session('error') }}</div>
             @endif
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="form-group row">
+                        <label class="col-1 control-label col-form-label">Filter:</label>
+                        <div class="col-3">
+                            <select class="form-control select2" id="filter_kategori" name="filter_kategori">
+                                <option value="">- Semua -</option>
+                                @foreach($kategoris as $kategori)
+                                    <option value="{{ $kategori->kategori_id }}">{{ $kategori->kategori_nama }}</option>
+                                @endforeach
+                            </select>
+                            <small class="form-text text-muted">Kategori Barang</small>
+                        </div>
+                    </div>
+                </div>
+            </div>            
             <table class="table table-bordered table-striped table-hover table-sm" id="table_barang">
                 <thead>
                     <tr>
                         <th>ID</th>
                         <th>Kode Barang</th>
                         <th>Nama Barang</th>
+                        <th>Kategori</th>
                         <th>Harga Beli</th>
                         <th>Harga Jual</th>
-                        <th>Kategori</th>
                         <th>Aksi</th>
                     </tr>
                 </thead>
             </table>
         </div>
     </div>
+    <div id="myModal" class="modal fade animate shake" tabindex="-1" role="dialog" data-backdrop="static" data-keyboard="false" data-width="75%" aria-hidden="true"></div>
 @endsection
 
 @push('css')
 @endpush
 
 @push('js')
-    <script>
-        $(document).ready(function() {
-            var dataBarang = $('#table_barang').DataTable({
-                serverSide: true,
-                ajax: {
-                    "url": "{{ url('barang/list') }}",
-                    "dataType": "json",
-                    "type": "POST"
-                },
-                columns: [
-                    {
-                        data: "barang_id", // Menggunakan barang_id sebagai primary key
-                        className: "text-center",
-                        orderable: false,
-                        searchable: false
-                    },
-                    {
-                        data: "barang_kode", // Menampilkan kode barang
-                        className: "",
-                        orderable: true,
-                        searchable: true
-                    },
-                    {
-                        data: "barang_nama", // Menampilkan nama barang
-                        className: "",
-                        orderable: true,
-                        searchable: true
-                    },
-                    {
-                        data: "harga_beli", // Menampilkan harga beli
-                        className: "text-right",
-                        orderable: true,
-                        searchable: false
-                    },
-                    {
-                        data: "harga_jual", // Menampilkan harga jual
-                        className: "text-right",
-                        orderable: true,
-                        searchable: false
-                    },
-                    {
-                        data: "kategori", // Menampilkan kategori barang
-                        className: "",
-                        orderable: true,
-                        searchable: true
-                    },
-                    {
-                        data: "aksi",
-                        className: "text-center",
-                        orderable: false,
-                        searchable: false
-                    }
-                ]
-            });
+<script>
+    function modalAction(url = '') {
+        $('#myModal').load(url, function() { 
+            $('#myModal').modal('show');
         });
-    </script>
+    }
+
+    var dataBarang;
+    $(document).ready(function() {
+        dataBarang = $('#table_barang').DataTable({
+            serverSide: true,
+            ajax: {
+                "url": "{{ url('barang/list') }}",
+                "dataType": "json",
+                "type": "POST",
+                "data": function(d) {
+                    d.barang_kategori = $('#filter_kategori').val();  // Mengirim filter kategori ke server
+                }
+            },
+            columns: [
+                {
+                    data: "DT_RowIndex",
+                    className: "text-center",
+                    orderable: false,
+                    searchable: false
+                },
+                {
+                    data: "barang_kode",
+                    orderable: true,
+                    searchable: true
+                },
+                {
+                    data: "barang_nama",
+                    orderable: true,
+                    searchable: true
+                },
+                {
+                    data: "kategori_nama",
+                    orderable: true,
+                    searchable: true
+                },
+                {
+                    data: "harga_beli",
+                    className: "text-right",
+                    orderable: true,
+                    searchable: true
+                },
+                {
+                    data: "harga_jual",
+                    className: "text-right",
+                    orderable: true,
+                    searchable: true
+                },
+                {
+                    data: "aksi",
+                    orderable: false,
+                    searchable: false
+                }
+            ]
+        });
+
+        // Reload data saat filter kategori berubah
+        $('#filter_kategori').on('change', function() {
+            dataBarang.ajax.reload();
+        });
+    });
+</script>
 @endpush
