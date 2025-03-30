@@ -107,8 +107,50 @@
     <script src="{{ asset('adminlte/dist/js/adminlte.min.js') }}"></script>
 
     <script>
-        // Untuk mengirimkan token Laravel CSRF pada setiap request ajax
         $.ajaxSetup({headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')}});
+    </script>
+
+    <script>
+        $(document).ready(function() {
+            $('#logout-button').click(function(e) {
+                e.preventDefault(); 
+                Swal.fire({
+                    title: 'Konfirmasi Logout',
+                    text: "Apakah kamu yakin ingin logout?",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6',
+                    confirmButtonText: 'Ya, Logout!'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $.ajax({
+                            url: "{{ route('logout') }}",
+                            type: "POST",
+                            data: { _token: "{{ csrf_token() }}" },
+                            success: function(response) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Logout Berhasil!',
+                                    text: 'Kamu akan diarahkan ke halaman login.',
+                                    timer: 2000,
+                                    showConfirmButton: false
+                                }).then(() => {
+                                    window.location.href = "{{ url('login') }}";
+                                });
+                            },
+                            error: function(xhr) {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Oops!',
+                                    text: 'Terjadi kesalahan saat logout.'
+                                });
+                            }
+                        });
+                    }
+                });
+            });
+        });
     </script>
 
     @stack('js')
