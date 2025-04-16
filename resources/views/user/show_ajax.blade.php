@@ -7,6 +7,19 @@
             </button>
         </div>
         <div class="modal-body">
+            <div class="text-center mb-3">
+                @if($user->profile_picture)
+                    <img src="{{ asset('uploads/profile/' . $user->profile_picture) }}" 
+                         alt="Profile Picture" 
+                         class="img-thumbnail rounded-circle" 
+                         style="width: 150px; height: 150px; object-fit: cover;">
+                @else
+                    <div class="d-inline-block rounded-circle bg-light" 
+                         style="width: 150px; height: 150px; line-height: 150px; text-align: center;">
+                        <i class="fas fa-user fa-3x text-secondary"></i>
+                    </div>
+                @endif
+            </div>
             <table class="table table-sm table-bordered">
                 <tr>
                     <th class="text-right">Username :</th>

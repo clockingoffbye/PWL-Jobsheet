@@ -6,6 +6,7 @@ use App\Models\LevelModel;
 use App\Models\UserModel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -227,41 +228,59 @@ class UserController extends Controller
     {
         if ($request->ajax() || $request->wantsJson()) {
             $rules = [
-                'level_id' => 'required|integer',
-                'username' => 'required|max:20|unique:m_user,username,' . $id . ',user_id',
-                'nama'     => 'required|max:100',
-                'password' => 'nullable|min:6|max:20'
+                'level_id'         => 'required|integer',
+                'username'         => 'required|max:20|unique:m_user,username,' . $id . ',user_id',
+                'nama'             => 'required|max:100',
+                'password'         => 'nullable|min:6|max:20',
+                'profile_picture'  => 'nullable|mimes:jpg,jpeg,png|max:2048'
             ];
 
             $validator = Validator::make($request->all(), $rules);
 
             if ($validator->fails()) {
                 return response()->json([
-                    'status'   => false, // false: validasi gagal
+                    'status'   => false,
                     'message'  => 'Validasi gagal.',
-                    'msgField' => $validator->errors() // Menunjukkan field mana yang error
+                    'msgField' => $validator->errors()
                 ]);
             }
 
-            $check = UserModel::find($id);
-
-            if ($check) {
-                if (!$request->filled('password')) {
-                    $request->request->remove('password');
-                }
-
-                $check->update($request->all());
-
-                return response()->json([
-                    'status'  => true,
-                    'message' => 'Data berhasil diupdate'
-                ]);
-            } else {
+            $user = UserModel::find($id);
+            if (!$user) {
                 return response()->json([
                     'status'  => false,
                     'message' => 'Data tidak ditemukan'
                 ]);
             }
+
+            $data = [
+                'level_id' => $request->level_id,
+                'username' => $request->username,
+                'nama'     => $request->nama,
+            ];
+
+            if ($request->filled('password')) {
+                $data['password'] = bcrypt($request->password);
+            }
+
+            if ($request->hasFile('profile_picture')) {
+                if ($user->profile_picture && file_exists(public_path('uploads/profile/' . $user->profile_picture))) {
+                    @unlink(public_path('uploads/profile/' . $user->profile_picture));
+                }
+
+                $file = $request->file('profile_picture');
+                $filename = time() . '_' . $file->getClientOriginalName();
+                $file->move(public_path('uploads/profile'), $filename);
+
+                $data['profile_picture'] = $filename;
+            }
+
+            $user->update($data);
+
+            return response()->json([
+                'status'  => true,
+                'message' => 'Data berhasil diupdate'
+            ]);
         }
 
         return redirect('/');
