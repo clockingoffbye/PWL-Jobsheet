@@ -7,6 +7,19 @@
             </button>
         </div>
         <div class="modal-body">
+            <div class="text-center mb-3">
+                @if($barang->image)
+                    <img src="{{ asset($barang->image) }}" 
+                         alt="Gambar Barang" 
+                         class="img-thumbnail" 
+                         style="width: 200px; height: 200px; object-fit: cover;">
+                @else
+                    <div class="d-inline-block bg-light border" 
+                         style="width: 200px; height: 200px; line-height: 200px; text-align: center;">
+                        <i class="fas fa-box fa-3x text-secondary"></i>
+                    </div>
+                @endif
+            </div>
             <table class="table table-sm table-bordered">
                 <tr>
                     <th class="text-right">Kode Barang :</th>

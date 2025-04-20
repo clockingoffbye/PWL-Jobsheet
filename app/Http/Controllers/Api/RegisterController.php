@@ -16,7 +16,8 @@ class RegisterController extends Controller
             'username' => 'required',
             'name' => 'required',
             'password' => 'required|min:5|confirmed',
-            'level_id' => 'required'
+            'level_id' => 'required',
+            'profile_picture' => 'required|mimes:jpg,jpeg,png,gif,svg|max:2048',
         ]);
 
         // If validation fails
@@ -24,13 +25,22 @@ class RegisterController extends Controller
             return response()->json($validator->errors(), 422);
         }
 
-        // Try to create user
+        if ($request->hasFile('profile_picture')) {
+            $file = $request->file('profile_picture');
+            $filename = $file->hashName();
+            $file->move(public_path('uploads/profile'), $filename);
+            $profilePicturePath = 'uploads/profile/' . $filename;
+        } else {
+            $profilePicturePath = null;
+        }
+
         try {
             $user = UserModel::create([
                 'username' => $request->username,
                 'name' => $request->name,
                 'password' => bcrypt($request->password),
                 'level_id' => $request->level_id,
+                'profile_picture' => $profilePicturePath,
             ]);
 
             return response()->json([
